@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKYBOLT AI — Atmospheric Intelligence & Storm Nowcasting</title>
+  <meta name="description" content="SKYBOLT AI combines atmospheric signals into short-term thunderstorm and lightning intelligence—so you can understand what is developing, where it is moving, and how risk is changing.">
+  
+  <!-- Inter, Plus Jakarta Sans & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            void: '#0B0D0F',
+            surface: '#101316',
+            secondary: '#161A1F',
+            elevated: '#1C2229',
+            cyan: {
+              DEFAULT: '#18D6D1',
+              subtle: 'rgba(24, 214, 209, 0.12)',
+              border: 'rgba(24, 214, 209, 0.38)',
+            },
+            amber: {
+              DEFAULT: '#C8943D',
+              subtle: 'rgba(200, 148, 61, 0.16)',
+            },
+            warning: {
+              DEFAULT: '#B85C52',
+              subtle: 'rgba(184, 92, 82, 0.16)',
+            },
+            severe: {
+              DEFAULT: '#8F3F3A',
+              subtle: 'rgba(143, 63, 58, 0.22)',
+            },
+            green: {
+              DEFAULT: '#6D786C',
+              subtle: 'rgba(109, 120, 108, 0.16)',
+            },
+            slate: {
+              muted: '#6C6C67',
+              secondary: '#94948E',
+            }
+          },
+          fontFamily: {
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+            sans: ['Inter', 'Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Custom Design System Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#0B0D0F] text-[#F7F6F2] flex flex-col min-h-screen selection:bg-[#18D6D1]/25 selection:text-[#18D6D1] overflow-x-hidden">
+
+  <!-- ======================================================== -->
+  <!-- 0. ATMOSPHERIC BACKGROUND VIDEO ENVIRONMENT (UPLOADED STORM) -->
+  <!-- ======================================================== -->
+  <div id="atmosphericVideoContainer" class="atmospheric-bg-container">
+    <video id="atmosphericBgVideo"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster="assets/thunderstorm_atmosphere_poster.jpg"
+      class="atmospheric-bg-video">
+      <source src="assets/thunderstorm_atmosphere.mp4" type="video/mp4">
+      <source src="assets/atmosphere.mp4" type="video/mp4">
+    </video>
+    <!-- Controlled Multi-Layer Readability Overlays (Section 5) -->
+    <div id="atmosphericOverlayTint" class="atmospheric-overlay-tint"></div>
+    <div class="atmospheric-overlay-gradient"></div>
+    <div class="atmospheric-overlay-bottom"></div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 1. NAVIGATION -->
+  <!-- ======================================================== -->
+  <header class="content-layer bg-[#0B0D0F]/85 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 px-4 lg:px-8 py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Identity -->
+      <a href="#hero" class="flex items-center space-x-3 group">
+        <div class="w-8 h-8 rounded-lg bg-[#18D6D1] flex items-center justify-center text-[#0B0D0F] shadow-sm group-hover:brightness-110 transition-all">
+          <i data-lucide="cloud-lightning" class="w-4 h-4 text-[#0B0D0F]"></i>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-base font-bold tracking-tight text-[#F7F6F2] font-display">SKYBOLT AI</span>
+          <span class="hidden sm:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#94948E] border border-white/10">NOWCASTING</span>
+        </div>
+      </a>
+
+      <!-- Desktop Links -->
+      <nav class="hidden md:flex items-center space-x-7 text-xs font-medium text-[#94948E]">
+        <a href="#nowcast-command" class="nav-link text-[#F7F6F2] font-semibold flex items-center space-x-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#18D6D1]"></span>
+          <span>Platform</span>
+        </a>
+        <a href="#nowcast-command" class="nav-link hover:text-[#F7F6F2]">Nowcast</a>
+        <a href="#multi-source" class="nav-link hover:text-[#F7F6F2]">Intelligence</a>
+        <a href="#technology-section" class="nav-link hover:text-[#F7F6F2]">Technology</a>
+        <a href="#use-cases" class="nav-link hover:text-[#F7F6F2]">Use Cases</a>
+        <button onclick="openModal('aboutModal')" class="nav-link hover:text-[#F7F6F2]">About</button>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-2.5">
+        <!-- Live UTC Clock -->
+        <div class="hidden lg:flex items-center space-x-2 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] font-mono text-[#94948E]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#6D786C]"></span>
+          <span id="topClock">--:--:-- UTC</span>
+        </div>
+
+        <!-- Theme Toggle (Dark Obsidian / Editorial Titanium) -->
+        <button onclick="toggleTheme()" id="themeToggleBtn" title="Switch Theme (Dark Obsidian / Editorial Titanium)" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#94948E] hover:text-[#F7F6F2] transition-colors flex items-center justify-center">
+          <i data-lucide="sun" id="themeIcon" class="w-4 h-4 text-[#C8943D]"></i>
+        </button>
+
+        <!-- Atmosphere Mode (ON / OFF) Section 13 Toggle -->
+        <button id="atmosphereToggleBtn" onclick="toggleAtmosphericMode()" title="Toggle Atmospheric Video (ON/OFF)" class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#94948E] hover:text-[#F7F6F2] transition-colors flex items-center space-x-1.5 text-xs font-medium">
+          <span id="atmosphereToggleDot" class="w-1.5 h-1.5 rounded-full bg-[#18D6D1]"></span>
+          <span id="atmosphereToggleText" class="font-mono text-[11px]">Atmosphere: ON</span>
+        </button>
+
+        <!-- Atmosphere Video Settings Button -->
+        <button onclick="openModal('atmosphereModal')" title="Atmospheric Environment Settings & Upload" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#94948E] hover:text-[#F7F6F2] transition-colors flex items-center justify-center">
+          <i data-lucide="sliders" class="w-4 h-4 text-[#18D6D1]"></i>
+        </button>
+
+        <!-- Share Live Link Button -->
+        <button onclick="openModal('shareModal')" title="Share Live Prototype Link" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#94948E] hover:text-[#F7F6F2] transition-colors">
+          <i data-lucide="share-2" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Primary CTA: Launch Nowcast -->
+        <a href="#nowcast-command" class="btn-primary shadow-sm flex items-center space-x-1.5">
+          <span>Launch Nowcast</span>
+          <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+        </a>
+
+        <!-- Mobile Drawer Toggle -->
+        <button onclick="toggleMobileNav()" class="md:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-[#94948E]">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileNavDrawer" class="hidden md:hidden pt-3 pb-2 border-t border-white/10 mt-3 space-y-2">
+      <a href="#nowcast-command" onclick="toggleMobileNav()" class="block px-3 py-2 rounded-lg text-sm text-[#F7F6F2] font-semibold bg-white/5">Platform</a>
+      <a href="#multi-source" onclick="toggleMobileNav()" class="block px-3 py-2 rounded-lg text-sm text-[#94948E] hover:text-[#F7F6F2]">Intelligence</a>
+      <a href="#technology-section" onclick="toggleMobileNav()" class="block px-3 py-2 rounded-lg text-sm text-[#94948E] hover:text-[#F7F6F2]">Technology</a>
+      <a href="#use-cases" onclick="toggleMobileNav()" class="block px-3 py-2 rounded-lg text-sm text-[#94948E] hover:text-[#F7F6F2]">Use Cases</a>
+      <button onclick="openModal('aboutModal'); toggleMobileNav();" class="block w-full text-left px-3 py-2 rounded-lg text-sm text-[#94948E] hover:text-[#F7F6F2]">About SkyBolt AI</button>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- 2. EDITORIAL HERO SECTION -->
+  <!-- ======================================================== -->
+  <section id="hero" class="content-layer relative pt-12 pb-16 lg:pt-20 lg:pb-24 px-4 lg:px-8 border-b border-white/10">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- Left Column: Confident Editorial Typography -->
+      <div class="lg:col-span-6 space-y-6">
+        
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-[#F7F6F2]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#18D6D1]"></span>
+          <span class="tracking-wide uppercase">Atmospheric Intelligence</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#F7F6F2] font-display text-display leading-[1.08] tracking-tight">
+          Know the storm <span class="font-normal italic text-[#E9E8E3]">before it reaches you.</span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-[#94948E] font-normal leading-relaxed max-w-xl">
+          SKYBOLT AI combines atmospheric signals into short-term thunderstorm and lightning intelligence—so you can understand what is developing, where it is moving, and how risk is changing.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3.5 pt-2">
+          <a href="#nowcast-command" class="btn-primary px-6 py-3 text-sm shadow-sm flex items-center space-x-2">
+            <span>Launch Nowcast</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </a>
+          <a href="#multi-source" class="btn-secondary px-5 py-3 text-sm font-medium">
+            Explore the Intelligence
+          </a>
+        </div>
+
+        <!-- Subtle Metadata Signals -->
+        <div class="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 text-xs text-[#94948E]">
+          <div>
+            <span class="block text-[#F7F6F2] font-semibold font-mono text-sm">0–30 min</span>
+            <span class="text-[11px]">Micro-Nowcasting</span>
+          </div>
+          <div>
+            <span class="block text-[#F7F6F2] font-semibold font-mono text-sm">0–3 hours</span>
+            <span class="text-[11px]">Storm Trajectory</span>
+          </div>
+          <div>
+            <span class="block text-[#18D6D1] font-semibold font-mono text-sm">Multi-Sensor</span>
+            <span class="text-[11px]">Data Consensus</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Sophisticated Atmospheric Visualization -->
+      <div class="lg:col-span-6">
+        <div class="editorial-surface p-4 bg-[#101316] shadow-sm border border-white/10">
+          <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-3 text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-[#18D6D1]"></span>
+              <span class="font-mono text-[#F7F6F2] font-medium">ATMOSPHERIC FIELD · ELEV 0.5°</span>
+            </div>
+            <div class="flex items-center space-x-3 text-[#94948E] font-mono text-[11px]">
+              <span>SWEEP: 360° CONT</span>
+              <span class="px-2 py-0.5 rounded bg-[#C8943D]/15 text-[#C8943D] border border-[#C8943D]/30 font-semibold">41 dBZ CORE</span>
+            </div>
+          </div>
+
+          <div class="relative w-full aspect-square max-h-[380px] flex items-center justify-center bg-[#0B0D0F] rounded-lg overflow-hidden border border-white/10">
+            <canvas id="heroRadarCanvas" class="w-full h-full block"></canvas>
+            
+            <!-- Floating Clean Telemetry HUD -->
+            <div class="absolute bottom-3 left-3 bg-[#101316]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-lg text-[11px] font-mono space-y-1 text-[#F7F6F2] shadow-sm pointer-events-none">
+              <div class="flex items-center justify-between space-x-4">
+                <span class="text-[#6C6C67]">CENTROID:</span>
+                <span class="text-[#F7F6F2] font-semibold">19.0760° N, 72.8777° E</span>
+              </div>
+              <div class="flex items-center justify-between space-x-4">
+                <span class="text-[#6C6C67]">STORM MOTION:</span>
+                <span>240° WSW @ 28 km/h</span>
+              </div>
+              <div class="flex items-center justify-between space-x-4">
+                <span class="text-[#6C6C67]">RISK:</span>
+                <span class="text-[#C8943D] font-bold">MODERATE (68.4%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 3. NOWCAST COMMAND CENTER (CENTRAL INTELLIGENCE ENGINE) -->
+  <!-- ======================================================== -->
+  <section id="nowcast-command" class="content-layer py-12 lg:py-16 px-4 lg:px-8 border-b border-white/10 bg-[#0B0D0F]">
+    <div class="max-w-[1440px] mx-auto space-y-5">
+      
+      <!-- Top Control Bar (Search, Location, Horizon, Scenarios, Status) -->
+      <div class="editorial-surface p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        
+        <!-- Left: Location Search & GPS -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative w-full sm:w-72">
+            <input type="text" id="citySearchInput" placeholder="Search location (e.g. Mumbai, Pune, Delhi)..." 
+              onkeydown="if(event.key==='Enter') searchCity(this.value)"
+              class="w-full clean-input px-3.5 py-2 text-xs text-[#F7F6F2] placeholder-[#6C6C67] pl-8">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-[#6C6C67] absolute left-2.5 top-2.5"></i>
+          </div>
+
+          <button onclick="useCurrentLocation()" title="Use Current GPS Location" class="btn-secondary px-3 py-2 text-xs flex items-center space-x-1.5">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5 text-[#18D6D1]"></i>
+            <span>Locate Me</span>
+          </button>
+
+          <!-- Current Marked Location & Real-Time Accuracy Readout -->
+          <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#18D6D1]"></i>
+            <span id="displayLocationTitle" class="font-bold text-[#F7F6F2]">Mumbai, Maharashtra</span>
+            <span class="text-[#6C6C67]">•</span>
+            <span class="text-[11px] font-mono text-[#94948E]">
+              Marked Lat: <span id="displayMarkedLatTop" class="text-[#F7F6F2] font-semibold">19.0760° N</span>, <span id="displayMarkedLonTop" class="text-[#94948E]">72.8777° E</span>
+            </span>
+            <span class="text-[#6C6C67]">•</span>
+            <span class="text-[11px] font-mono text-[#18D6D1] flex items-center space-x-1" title="Cross-sensor calibrated nowcast accuracy">
+              <span class="text-[#6C6C67]">Acc:</span>
+              <span id="displayAccuracyTop" class="font-bold">89%</span>
+            </span>
+            <span id="displayCoordinates" class="hidden">19.0760° N, 72.8777° E</span>
+          </div>
+
+          <div id="searchFeedback" class="text-xs text-[#18D6D1] font-mono"></div>
+        </div>
+
+        <!-- Right: Horizon, Unified Status Badge & Scenarios -->
+        <div class="flex flex-wrap items-center gap-3">
+          
+          <!-- Horizon Selector -->
+          <div class="flex items-center space-x-1 bg-white/5 p-1 rounded-lg border border-white/10">
+            <button id="btn-horizon-30m" onclick="setForecastHorizon('30m')" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#18D6D1]/20 text-[#18D6D1] border border-[#18D6D1]/50 shadow-sm transition-all">0–30 min</button>
+            <button id="btn-horizon-3h" onclick="setForecastHorizon('3h')" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">0–3 hours</button>
+          </div>
+
+          <!-- Single Honest Data Status Badge -->
+          <span id="displayDataBadge" class="px-2.5 py-1 rounded text-[11px] font-semibold uppercase tracking-wider bg-[#C8943D]/15 text-[#C8943D] border border-[#C8943D]/30 flex items-center space-x-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#C8943D]"></span>
+            <span>SIMULATED DATA</span>
+          </span>
+
+          <!-- Demo Scenarios: Stable, Developing, Severe -->
+          <div class="flex items-center space-x-1 bg-white/5 p-1 rounded-lg border border-white/10 text-xs">
+            <span class="text-[11px] text-[#6C6C67] px-2 font-medium">Scenario:</span>
+            <button id="btn-scenario-stable" onclick="selectDemoScenario('stable')" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 border border-white/10 transition-all">Stable</button>
+            <button id="btn-scenario-developing" onclick="selectDemoScenario('developing')" class="px-2.5 py-1 rounded text-xs font-semibold bg-[#18D6D1]/20 text-[#18D6D1] border border-[#18D6D1]/50 shadow-sm transition-all">Developing</button>
+            <button id="btn-scenario-severe" onclick="selectDemoScenario('severe')" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 border border-white/10 transition-all">Severe</button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- MAIN LAYOUT: MAP IS THE HERO (65% MAP, 35% ANALYTICAL PANELS) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        <!-- ============================================== -->
+        <!-- CENTER / DOMINANT COLUMN: INTERACTIVE MAP (65%)-->
+        <!-- ============================================== -->
+        <div class="lg:col-span-8 flex flex-col justify-between space-y-3">
+          
+          <!-- Map Header Controls: Basemaps, Layers & Opacity Slider -->
+          <div class="editorial-surface p-3 flex flex-wrap items-center justify-between gap-3 text-xs bg-[#101316]">
+            
+            <!-- Left: Basemap Selector -->
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[#6C6C67] font-medium mr-1 text-[11px]">Basemap:</span>
+              <button id="btn-map-standard" onclick="setBasemap('standard')" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#18D6D1]/20 text-[#18D6D1] border border-[#18D6D1]/50 shadow-sm transition-all">Standard</button>
+              <button id="btn-map-terrain" onclick="setBasemap('terrain')" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">Terrain</button>
+              <button id="btn-map-satellite" onclick="setBasemap('satellite')" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">Satellite</button>
+            </div>
+
+            <!-- Center: Weather Layers Toggles (Default: Risk, Track, Location) -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button id="btn-layer-risk" onclick="toggleLayer('risk')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#18D6D1]/20 text-[#18D6D1] border border-[#18D6D1]/50 transition-all">● Risk Zone</button>
+              <button id="btn-layer-track" onclick="toggleLayer('track')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#18D6D1]/20 text-[#18D6D1] border border-[#18D6D1]/50 transition-all">● Storm Track</button>
+              <button id="btn-layer-cells" onclick="toggleLayer('cells')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-slate-400 border border-white/10 hover:text-[#F7F6F2] transition-all">Thunderstorm</button>
+              <button id="btn-layer-lightning" onclick="toggleLayer('lightning')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-slate-400 border border-white/10 hover:text-[#F7F6F2] transition-all">⚡ Lightning</button>
+              <button id="btn-layer-radar" onclick="toggleLayer('radar')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-slate-400 border border-white/10 hover:text-[#F7F6F2] transition-all">Radar (dBZ)</button>
+              <button id="btn-layer-satellite" onclick="toggleLayer('satellite')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-slate-400 border border-white/10 hover:text-[#F7F6F2] transition-all">IR Satellite</button>
+              <button id="btn-layer-wind" onclick="toggleLayer('wind')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-slate-400 border border-white/10 hover:text-[#F7F6F2] transition-all">Wind Flow</button>
+              <button id="btn-layer-rain" onclick="toggleLayer('rain')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/5 text-slate-400 border border-white/10 hover:text-[#F7F6F2] transition-all">Rain Rate</button>
+            </div>
+
+            <!-- Right: Opacity Slider & Reset -->
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-1.5 text-[11px] text-[#94948E]">
+                <span>Opacity:</span>
+                <input type="range" min="0.1" max="1.0" step="0.05" value="0.75" oninput="setWeatherOverlayOpacity(this.value)" class="w-16">
+                <span id="opacityValueDisplay" class="font-mono text-[10px] text-[#F7F6F2] w-7">75%</span>
+              </div>
+              <button onclick="resetMapView()" title="Reset View to Observation Point" class="p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-[#F7F6F2] transition-colors">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- THE MAP CONTAINER (Hero of the dashboard, Min Height 620px) -->
+          <div class="relative w-full rounded-2xl overflow-hidden border border-white/10 shadow-sm flex-1 min-h-[620px] bg-[#101316]">
+            <div id="leafletMap" class="w-full h-full z-10"></div>
+            
+            <!-- Dynamic Floating Legend -->
+            <div class="absolute bottom-16 right-3 z-20 bg-[#101316]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl text-[11px] text-[#F7F6F2] space-y-1.5 shadow-sm pointer-events-auto max-w-[210px]">
+              <div class="flex items-center justify-between pb-1 border-b border-white/10">
+                <strong id="legendTitle" class="font-display font-bold">Thunderstorm Risk</strong>
+                <span id="legendRiskBadge" class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#C8943D]/15 text-[#C8943D]">MODERATE</span>
+              </div>
+              <div id="legendBody" class="space-y-1 text-[#94948E]">
+                <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full bg-[#6D786C]"></span><span>Low Risk (&lt; 40%)</span></div>
+                <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full bg-[#C8943D]"></span><span>Moderate (40–74%)</span></div>
+                <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full bg-[#8F3F3A]"></span><span>High / Severe (75%+)</span></div>
+                <div class="flex items-center space-x-2"><span class="w-3 h-0.5 bg-[#C8943D] border-b border-dashed"></span><span>Predicted Track</span></div>
+              </div>
+            </div>
+
+            <!-- Coordinate Readout HUD -->
+            <div class="absolute top-3 right-3 z-20 bg-[#101316]/95 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-lg text-[11px] font-mono text-[#F7F6F2] shadow-sm">
+              <span id="mapCoordsDisplay">Mumbai · 19.0760° N, 72.8777° E</span>
+            </div>
+
+            <!-- MAP TIMELINE BAR (Slider + Play/Pause/Reset) -->
+            <div class="absolute bottom-3 left-3 right-3 z-20 bg-[#101316]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              
+              <!-- Left: Playback Controls -->
+              <div class="flex items-center space-x-2">
+                <button id="btnPlayForecast" onclick="toggleForecastPlayback()" class="btn-primary px-3 py-1.5 text-xs flex items-center space-x-1.5 shadow-none">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  <span>Play</span>
+                </button>
+                <button onclick="resetForecast()" title="Reset to Now" class="btn-secondary px-2.5 py-1.5 text-xs">
+                  <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                </button>
+                <div class="px-2.5 py-1 bg-white/5 rounded-md font-mono text-xs font-bold text-[#F7F6F2] min-w-[65px] text-center">
+                  <span id="timelineStepLabel">NOW</span>
+                </div>
+              </div>
+
+              <!-- Center: Timeline Step Buttons -->
+              <div class="flex items-center space-x-1 overflow-x-auto text-xs">
+                <button id="btn-timeline-0" onclick="setTimelineStep(0)" class="px-2.5 py-1 rounded text-xs font-bold bg-[#18D6D1] text-[#0B0D0F] transition-all">Now</button>
+                <button id="btn-timeline-30" onclick="setTimelineStep(30)" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">+30m</button>
+                <button id="btn-timeline-60" onclick="setTimelineStep(60)" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">+60m</button>
+                <button id="btn-timeline-90" onclick="setTimelineStep(90)" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">+90m</button>
+                <button id="btn-timeline-120" onclick="setTimelineStep(120)" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">+120m</button>
+                <button id="btn-timeline-180" onclick="setTimelineStep(180)" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-[#F7F6F2] bg-white/5 transition-all">+180m</button>
+              </div>
+
+              <!-- Right: Continuous Timeline Slider -->
+              <div class="flex items-center space-x-2 sm:w-48">
+                <input type="range" id="forecastTimelineSlider" min="0" max="180" step="30" value="0" oninput="setTimelineStep(this.value)" class="w-full">
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SIDE COLUMN: EDITORIAL ANALYTICAL PANELS (35%) -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-4 space-y-5 flex flex-col justify-between">
+          
+          <!-- Editorial Risk Panel -->
+          <div class="editorial-surface p-6 space-y-5 bg-[#101316]">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#94948E]">Thunderstorm Risk</span>
+              <span id="nowcastRiskBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#C8943D]/15 text-[#C8943D] border border-[#C8943D]/30">
+                MODERATE
+              </span>
+            </div>
+
+            <!-- Semicircular SVG Gauge & Dominant Large Number -->
+            <div class="flex flex-col items-center justify-center pt-1 relative">
+              <div class="relative w-56 h-32 flex items-end justify-center overflow-hidden">
+                <svg viewBox="0 0 200 110" class="w-full h-full">
+                  <path d="M 15 100 A 85 85 0 0 1 185 100" fill="none" stroke="#242930" stroke-width="12" stroke-linecap="round" />
+                  <path id="gaugeArcPath" d="M 15 100 A 85 85 0 0 1 185 100" fill="none" stroke="#C8943D" stroke-width="12" stroke-linecap="round"
+                    stroke-dasharray="267" stroke-dashoffset="84" style="transition: stroke-dashoffset 0.8s ease, stroke 0.4s ease;" />
+                </svg>
+
+                <div class="absolute bottom-1 text-center">
+                  <span class="text-[10px] font-semibold text-[#6C6C67] uppercase tracking-wider block">Probability</span>
+                  <span id="nowcastRiskNumber" class="text-4xl sm:text-5xl font-extrabold text-[#F7F6F2] metric-number">68%</span>
+                </div>
+              </div>
+
+              <!-- Live Marked Location & Prediction Accuracy Metadata Grid -->
+              <div class="w-full pt-4 mt-3 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
+                  <span class="text-[9px] text-[#6C6C67] uppercase tracking-wider block font-medium">Marked Lat</span>
+                  <span id="nowcastMarkedLat" class="font-bold text-[#F7F6F2] font-mono text-[11px]">19.0760° N</span>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
+                  <span class="text-[9px] text-[#6C6C67] uppercase tracking-wider block font-medium">Marked Lon</span>
+                  <span id="nowcastMarkedLon" class="font-bold text-[#94948E] font-mono text-[11px]">72.8777° E</span>
+                </div>
+                <div class="bg-[#18D6D1]/10 p-2 rounded-lg border border-[#18D6D1]/30">
+                  <span class="text-[9px] text-[#18D6D1] uppercase tracking-wider block font-medium">Accuracy</span>
+                  <span id="nowcastAccuracy" class="font-extrabold text-[#18D6D1] font-mono text-[12px]">89%</span>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
+                  <span class="text-[9px] text-[#6C6C67] uppercase tracking-wider block font-medium">Lead Time</span>
+                  <span id="nowcastArrivalMin" class="font-bold text-[#F7F6F2] font-mono text-[11px]">~34 min</span>
+                </div>
+              </div>
+
+              <!-- Scientific Calibrated Accuracy Assessment Bar -->
+              <div class="w-full mt-2.5 p-2.5 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between text-[11px]">
+                <div class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#18D6D1]"></span>
+                  <span class="text-[#94948E]">Model Status:</span>
+                  <span id="accuracyBadgeLabel" class="font-mono font-semibold text-[#18D6D1]">89% Calibrated</span>
+                </div>
+                <span id="accuracyMarginLabel" class="font-mono text-[#6C6C67] text-[10px]">±4.2% / ±2.5 km margin</span>
+              </div>
+
+              <div class="w-full flex items-center justify-between text-[11px] text-[#94948E] pt-2">
+                <span id="nowcastConfidence" class="font-mono text-[10px]">Confidence: 74%</span>
+                <span class="flex items-center space-x-1 text-[#C8943D]">
+                  <i data-lucide="crosshair" class="w-3 h-3 text-[#18D6D1]"></i>
+                  <span class="text-[10px]">Click or drag marker on map for live prediction</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- "Why is risk changing?" Delta Panel -->
+          <div class="editorial-surface p-5 space-y-3 bg-[#101316]">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <span class="text-xs font-bold text-[#F7F6F2]">Why is risk changing?</span>
+              <span class="text-[10px] font-mono text-[#6C6C67]">15m Observation Delta</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-white/5 p-2.5 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Radar Intensity</span>
+                <span id="deltaRadarVal" class="font-bold text-[#F7F6F2] font-mono">35 → 41 dBZ</span>
+                <span class="text-[10px] font-semibold text-[#C8943D] block mt-0.5">↑ +6.0 dBZ</span>
+              </div>
+              <div class="bg-white/5 p-2.5 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Lightning Activity</span>
+                <span id="deltaLightningVal" class="font-bold text-[#F7F6F2] font-mono">5 → 11 strikes</span>
+                <span class="text-[10px] font-semibold text-[#B85C52] block mt-0.5">↑ +6 strikes</span>
+              </div>
+              <div class="bg-white/5 p-2.5 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Relative Humidity</span>
+                <span id="deltaHumidityVal" class="font-bold text-[#F7F6F2] font-mono">78% → 82%</span>
+                <span class="text-[10px] font-semibold text-[#18D6D1] block mt-0.5">↑ +4.0%</span>
+              </div>
+              <div class="bg-white/5 p-2.5 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Cloud Development</span>
+                <span id="deltaCloudVal" class="font-bold text-[#F7F6F2] font-mono">80% → 91%</span>
+                <span class="text-[10px] font-semibold text-[#18D6D1] block mt-0.5">↑ +11.0%</span>
+              </div>
+            </div>
+
+            <!-- Intelligent Editorial Interpretation -->
+            <div class="pt-2 border-t border-white/10 text-xs text-[#94948E] leading-relaxed">
+              <span class="italic text-[#F7F6F2]">“Risk is increasing as storm intensity, lightning activity and atmospheric moisture strengthen around the selected region.”</span>
+            </div>
+          </div>
+
+          <!-- Forecast Summary: Next 3 Hours -->
+          <div class="editorial-surface p-4 space-y-2 bg-[#101316]">
+            <div class="flex items-center justify-between pb-1 border-b border-white/10">
+              <span class="text-xs font-bold text-[#F7F6F2]">NEXT 3 HOURS FORECAST</span>
+              <span class="text-[10px] text-[#6C6C67]">Calibrated Model</span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5 pt-1 text-center text-xs">
+              <div class="bg-white/5 p-1.5 rounded">
+                <span class="text-[9px] text-[#6C6C67] block font-mono">Now</span>
+                <span id="summary-prob-t0" class="text-xs font-bold text-[#F7F6F2] block font-mono">68%</span>
+                <span id="summary-pill-t0" class="px-1 py-0.2 rounded text-[8px] font-bold bg-[#C8943D]/15 text-[#C8943D] inline-block">Mod ↑</span>
+              </div>
+              <div class="bg-white/5 p-1.5 rounded border border-[#C8943D]/40">
+                <span class="text-[9px] text-[#C8943D] block font-mono font-bold">+30m</span>
+                <span id="summary-prob-t30" class="text-xs font-bold text-[#F7F6F2] block font-mono">83%</span>
+                <span id="summary-pill-t30" class="px-1 py-0.2 rounded text-[8px] font-bold bg-[#8F3F3A]/20 text-[#B85C52] inline-block">Severe ↑</span>
+              </div>
+              <div class="bg-white/5 p-1.5 rounded">
+                <span class="text-[9px] text-[#6C6C67] block font-mono">+60m</span>
+                <span id="summary-prob-t60" class="text-xs font-bold text-[#F7F6F2] block font-mono">74%</span>
+                <span id="summary-pill-t60" class="px-1 py-0.2 rounded text-[8px] font-bold bg-[#C8943D]/15 text-[#C8943D] inline-block">Mod ↑</span>
+              </div>
+              <div class="bg-white/5 p-1.5 rounded">
+                <span class="text-[9px] text-[#6C6C67] block font-mono">+120m</span>
+                <span id="summary-prob-t120" class="text-xs font-bold text-[#F7F6F2] block font-mono">58%</span>
+                <span id="summary-pill-t120" class="px-1 py-0.2 rounded text-[8px] font-bold bg-[#C8943D]/15 text-[#C8943D] inline-block">Mod ↓</span>
+              </div>
+              <div class="bg-white/5 p-1.5 rounded">
+                <span class="text-[9px] text-[#6C6C67] block font-mono">+180m</span>
+                <span id="summary-prob-t180" class="text-xs font-bold text-[#F7F6F2] block font-mono">35%</span>
+                <span id="summary-pill-t180" class="px-1 py-0.2 rounded text-[8px] font-bold bg-[#6D786C]/20 text-[#A3B1A2] inline-block">Clear</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Atmospheric Intelligence Surface with Collapsible Advanced Parameters -->
+          <div class="editorial-surface p-5 space-y-3 bg-[#101316]">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <span class="text-xs font-bold text-[#F7F6F2]">ATMOSPHERIC INTELLIGENCE</span>
+              <span class="text-[10px] font-mono text-[#18D6D1]">Surface Soundings</span>
+            </div>
+
+            <!-- Primary Meteorological Readings (Always Visible) -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-white/5 p-2 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Temperature</span>
+                <span id="metricTemp" class="font-bold text-[#F7F6F2] font-mono">28.4 °C</span>
+              </div>
+              <div class="bg-white/5 p-2 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Humidity</span>
+                <span id="metricHumidity" class="font-bold text-[#18D6D1] font-mono">82 %</span>
+              </div>
+              <div class="bg-white/5 p-2 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Pressure</span>
+                <span id="metricPressure" class="font-bold text-[#F7F6F2] font-mono">1002 hPa</span>
+              </div>
+              <div class="bg-white/5 p-2 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Precipitation</span>
+                <span id="metricRainfall" class="font-bold text-[#18D6D1] font-mono">4.2 mm/h</span>
+              </div>
+              <div class="bg-white/5 p-2 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Wind Velocity</span>
+                <span id="metricWind" class="font-bold text-[#F7F6F2] font-mono">18 km/h</span>
+              </div>
+              <div class="bg-white/5 p-2 rounded-lg">
+                <span class="text-[10px] text-[#6C6C67] block">Radar Echo</span>
+                <span id="metricRadar" class="font-bold text-[#C8943D] font-mono">41 dBZ</span>
+              </div>
+            </div>
+
+            <!-- Collapsible Advanced Atmospheric Details Accordion (Section 20) -->
+            <details class="group pt-2 border-t border-white/10">
+              <summary class="flex items-center justify-between text-xs text-[#94948E] hover:text-[#F7F6F2] cursor-pointer select-none py-1 transition-colors">
+                <span class="font-medium">Advanced Atmospheric Details</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform group-open:rotate-180 text-[#94948E]"></i>
+              </summary>
+              <div class="pt-2 space-y-1.5 text-[11px]">
+                <div class="flex items-center justify-between text-[#94948E]">
+                  <span>CAPE (Buoyancy Energy):</span>
+                  <span id="metricCape" class="font-bold text-[#C8943D] font-mono">1540 J/kg</span>
+                </div>
+                <div class="flex items-center justify-between text-[#94948E]">
+                  <span>Lifted Index (LI):</span>
+                  <span id="metricLiftedIndex" class="font-bold text-[#18D6D1] font-mono">-4.2</span>
+                </div>
+                <div class="flex items-center justify-between text-[#94948E]">
+                  <span>Cloud-Top Temperature:</span>
+                  <span id="metricCloudTop" class="font-bold text-[#18D6D1] font-mono">-58 °C</span>
+                </div>
+                <div class="flex items-center justify-between text-[#94948E]">
+                  <span>Storm Motion Vector:</span>
+                  <span id="metricStormMotion" class="font-bold text-[#F7F6F2] font-mono">28 km/h</span>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <!-- SKYBOLT INTELLIGENCE Assistant -->
+          <div class="editorial-surface p-5 space-y-3 bg-[#101316] flex-1 flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <span class="text-xs font-bold text-[#F7F6F2] flex items-center space-x-1.5">
+                <i data-lucide="bot" class="w-3.5 h-3.5 text-[#18D6D1]"></i>
+                <span>SKYBOLT INTELLIGENCE</span>
+              </span>
+              <span class="text-[10px] text-[#6C6C67]">Context-Aware</span>
+            </div>
+
+            <!-- Suggested Question Pills -->
+            <div class="flex flex-wrap gap-1 text-[10px]">
+              <button onclick="askSkybolt('How accurate is this prediction?')" class="px-2 py-0.5 rounded bg-[#18D6D1]/15 text-[#18D6D1] hover:bg-[#18D6D1]/25 transition-colors border border-[#18D6D1]/40 font-semibold flex items-center space-x-1">
+                <span>🎯 How accurate is this?</span>
+              </button>
+              <button onclick="askSkybolt('Why is risk increasing?')" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[#F7F6F2] transition-colors border border-white/10">
+                Why increasing?
+              </button>
+              <button onclick="askSkybolt('What changed?')" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[#F7F6F2] transition-colors border border-white/10">
+                What changed?
+              </button>
+              <button onclick="askSkybolt('What does 68% mean?')" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[#F7F6F2] transition-colors border border-white/10">
+                What does 68% mean?
+              </button>
+              <button onclick="askSkybolt('Explain this simply')" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-[#F7F6F2] transition-colors border border-white/10">
+                Explain simply
+              </button>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div id="chatMessages" class="bg-[#0B0D0F] p-3 rounded-lg border border-white/10 h-28 overflow-y-auto space-y-2 text-xs">
+              <div class="flex justify-start">
+                <div class="bg-[#161A1F] border border-white/10 text-[#F7F6F2] text-[11px] p-2.5 rounded-lg max-w-[95%] shadow-sm">
+                  Hello. I am analyzing real-time atmospheric telemetry for <strong>Mumbai</strong>. Risk is currently <strong>68% (Moderate)</strong> with Doppler core at <strong>41 dBZ</strong>. Click a prompt above or ask a question.
+                </div>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form onsubmit="handleChatSubmit(event)" class="flex items-center space-x-1.5 pt-1">
+              <input type="text" id="chatInput" placeholder="Ask about storm risk or conditions..." 
+                class="flex-1 clean-input px-3 py-1.5 text-xs text-[#F7F6F2] placeholder-[#6C6C67]">
+              <button type="submit" class="btn-primary p-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 4. DATA FUSION: "ONE VIEW. MULTIPLE SIGNALS." -->
+  <!-- ======================================================== -->
+  <section id="multi-source" class="content-layer py-16 lg:py-24 px-4 lg:px-8 border-b border-white/10 bg-[#0B0D0F]">
+    <div class="max-w-7xl mx-auto space-y-12">
+      <div class="max-w-2xl">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[#18D6D1] block mb-2">Sensor Synergy</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-[#F7F6F2] font-display text-display">
+          One view. Multiple signals.
+        </h2>
+        <p class="text-[#94948E] text-sm sm:text-base mt-2">
+          No single instrument can predict rapid convective initiation alone. SKYBOLT AI harmonizes four independent atmospheric data streams.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-bold text-[#F7F6F2]">RADAR</span>
+            <span class="text-[10px] font-mono text-[#6C6C67]">48% WEIGHT</span>
+          </div>
+          <h4 class="text-base font-bold text-[#F7F6F2]">Storm Structure & Movement</h4>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            High-resolution Doppler reflectivity sweeps capturing precipitation cores, boundary shear, and convective boundaries.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-bold text-[#536B78]">SATELLITE</span>
+            <span class="text-[10px] font-mono text-[#6C6C67]">12% WEIGHT</span>
+          </div>
+          <h4 class="text-base font-bold text-[#F7F6F2]">Cloud Development & Cooling</h4>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Geostationary infrared brightness temperatures identifying rapid vertical updraft cooling down to -75°C.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-bold text-[#C8943D]">LIGHTNING</span>
+            <span class="text-[10px] font-mono text-[#6C6C67]">17% WEIGHT</span>
+          </div>
+          <h4 class="text-base font-bold text-[#F7F6F2]">Electrical Activity Trends</h4>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Ground-based strike sensors tracking total lightning flash density, charge polarity, and sudden pulse jumps.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-bold text-[#6D786C]">ATMOSPHERIC MODELS</span>
+            <span class="text-[10px] font-mono text-[#6C6C67]">23% WEIGHT</span>
+          </div>
+          <h4 class="text-base font-bold text-[#F7F6F2]">Thermodynamics & Instability</h4>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Numerical atmospheric soundings quantifying CAPE instability, Lifted Index, and lower-tropospheric moisture flux.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 5. TECHNOLOGY: "FROM OBSERVATION TO NOWCAST." -->
+  <!-- ======================================================== -->
+  <section id="technology-section" class="content-layer py-16 lg:py-24 px-4 lg:px-8 border-b border-white/10 bg-[#0B0D0F]">
+    <div class="max-w-7xl mx-auto space-y-12">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="max-w-2xl">
+          <span class="text-xs font-semibold uppercase tracking-wider text-[#18D6D1] block mb-2">Methodology</span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-[#F7F6F2] font-display text-display">
+            From observation to nowcast.
+          </h2>
+          <p class="text-[#94948E] text-sm sm:text-base mt-2">
+            A 4-step scientific workflow turning dense observational streams into clear operational early warnings.
+          </p>
+        </div>
+        <div>
+          <button onclick="openModal('technologyModal')" class="btn-secondary flex items-center space-x-2 text-xs font-semibold">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            <span>View Technical Architecture</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="text-xs font-mono font-bold text-[#18D6D1]">01 — OBSERVE</div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Collect atmospheric signals</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Ingest Doppler radar reflectivity sweeps, geostationary satellite IR cooling rates, lightning strike counts, and numerical fields.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="text-xs font-mono font-bold text-[#18D6D1]">02 — FUSE</div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Harmonize tensor fields</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Construct spatiotemporal tensors uniting reflectivity grid cells, CAPE parcel buoyancy, and moisture boundary convergence.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="text-xs font-mono font-bold text-[#18D6D1]">03 — PREDICT</div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Estimate short-term storm risk</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Compute calibrated thunderstorm probability, lightning danger vectors, and lead-time arrival countdowns for 0–3 hour windows.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="text-xs font-mono font-bold text-[#18D6D1]">04 — EXPLAIN</div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Deliver clear intelligence</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Present intuitive geographic maps, plain-language explanations, and sector-specific advisories that teams can act upon immediately.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 6. SECTOR USE CASES -->
+  <!-- ======================================================== -->
+  <section id="use-cases" class="content-layer py-16 lg:py-24 px-4 lg:px-8 border-b border-white/10 bg-[#0B0D0F]">
+    <div class="max-w-7xl mx-auto space-y-10">
+      <div class="max-w-2xl">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[#18D6D1] block mb-2">Target Sectors</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-[#F7F6F2] font-display text-display">
+          Actionable intelligence across sectors.
+        </h2>
+        <p class="text-[#94948E] text-sm mt-2">
+          Designed to protect communities, optimize outdoor operations, and safeguard critical infrastructure.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#F7F6F2]">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Public Safety</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Support emergency responders and district administrators with localized early warning lead-times and automated safety protocols.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#18D6D1]">
+            <i data-lucide="building-2" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Infrastructure & Power</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Protect power distribution grids against lightning surges and coordinate pre-emptive sub-station protection.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#6D786C]">
+            <i data-lucide="sprout" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Agriculture</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Safeguard rural farmworkers from sudden lightning strikes and coordinate weather-sensitive harvesting schedules.
+          </p>
+        </div>
+
+        <div class="editorial-surface p-6 space-y-3 bg-[#101316]">
+          <div class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#F7F6F2]">
+            <i data-lucide="plane" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-[#F7F6F2]">Outdoor Operations</h3>
+          <p class="text-xs text-[#94948E] leading-relaxed">
+            Manage airport ramp holds, maritime port cranes, high-altitude construction sites, and public outdoor events safely.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 7. FOOTER & SCIENTIFIC DISCLAIMER -->
+  <!-- ======================================================== -->
+  <footer class="content-layer bg-white/5 border-t border-white/10 px-4 lg:px-8 py-12 text-[#94948E] text-xs">
+    <div class="max-w-7xl mx-auto space-y-8">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div>
+          <span class="text-base font-bold text-[#F7F6F2] font-display block">SKYBOLT AI</span>
+          <p class="text-xs text-[#94948E]">AI-powered atmospheric intelligence for short-term thunderstorm and lightning nowcasting.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-6 text-xs font-medium">
+          <a href="#nowcast-command" class="hover:text-[#F7F6F2] transition-colors">Platform</a>
+          <button onclick="openModal('technologyModal')" class="hover:text-[#F7F6F2] transition-colors">Technology</button>
+          <button onclick="openModal('aboutModal')" class="hover:text-[#F7F6F2] transition-colors">About</button>
+          <button onclick="openModal('sourcesModal')" class="hover:text-[#F7F6F2] transition-colors">Sources</button>
+          <button onclick="openModal('shareModal')" class="hover:text-[#F7F6F2] transition-colors">Share Prototype</button>
+        </div>
+      </div>
+
+      <div class="bg-[#101316] p-4 rounded-xl border border-white/10 text-[11px] text-[#94948E] leading-relaxed">
+        <strong>Product Disclaimer:</strong> SKYBOLT AI provides research and demonstration-based atmospheric risk estimates. Predictions are not official weather warnings. For safety-critical decisions, always follow authorized meteorological and emergency-management advisories.
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#6C6C67]">
+        <div>&copy; 2026 SKYBOLT AI Platform. All rights reserved.</div>
+        <div class="flex items-center space-x-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#6D786C]"></span>
+          <span>System Operational</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================== -->
+  <!-- MODALS -->
+  <!-- ======================================================== -->
+  
+  <!-- Technology Architecture Modal -->
+  <div id="technologyModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="editorial-surface bg-[#101316] border border-white/10 max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold text-[#F7F6F2]">Technical Architecture</h3>
+        <button onclick="closeModal('technologyModal')" class="p-1 rounded text-[#94948E] hover:text-[#F7F6F2]"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-4 text-xs text-[#94948E] leading-relaxed">
+        <div>
+          <h4 class="font-bold text-[#F7F6F2] text-xs mb-1">Multi-Source Atmospheric Tensor</h4>
+          <p>Constructs a 23-parameter spatiotemporal tensor uniting Doppler radar reflectivity sweeps, geostationary IR water-vapor cooling rates, ground lightning flash density, and numerical model fields (CAPE, Lifted Index, vertical shear).</p>
+        </div>
+        <div>
+          <h4 class="font-bold text-[#F7F6F2] text-xs mb-1">Dual-Horizon Spatiotemporal Engine</h4>
+          <p>Combines Spatiotemporal ConvLSTM layers for rapid localized convective initiation tracking (0–30 min) with Convective Transformers for mesoscale storm advection (0–3 hours).</p>
+        </div>
+        <div>
+          <h4 class="font-bold text-[#F7F6F2] text-xs mb-1">Confidence Calibration</h4>
+          <p>Every probability output is paired with a sensor coherence metric reflecting data quality and cross-instrument consensus.</p>
+        </div>
+      </div>
+      <div class="pt-3 border-t border-white/10 flex justify-end">
+        <button onclick="closeModal('technologyModal')" class="btn-primary text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="aboutModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="editorial-surface bg-[#101316] border border-white/10 max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold text-[#F7F6F2]">About SKYBOLT AI</h3>
+        <button onclick="closeModal('aboutModal')" class="p-1 rounded text-[#94948E] hover:text-[#F7F6F2]"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-3 text-xs text-[#94948E] leading-relaxed">
+        <h4 class="font-bold text-[#F7F6F2] text-sm">Making complex atmospheric intelligence simple and actionable.</h4>
+        <p>SKYBOLT AI is an AI-assisted atmospheric intelligence platform focused on short-term thunderstorm and lightning nowcasting.</p>
+        <p>Severe convective thunderstorms and sudden lightning strikes present grave risks to human life, aviation safety, agricultural harvesting, and power utility distribution. By synthesizing multi-source observational signals in real time, our mission is to deliver life-saving early warning lead times with clarity, confidence, and actionable precision.</p>
+      </div>
+      <div class="pt-3 border-t border-white/10 flex justify-end">
+        <button onclick="closeModal('aboutModal')" class="btn-primary text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sources Modal -->
+  <div id="sourcesModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="editorial-surface bg-[#101316] border border-white/10 max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold text-[#F7F6F2]">Scientific Sources & Methodology</h3>
+        <button onclick="closeModal('sourcesModal')" class="p-1 rounded text-[#94948E] hover:text-[#F7F6F2]"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="space-y-3 text-xs text-[#94948E] leading-relaxed">
+        <p>The mathematical and spatiotemporal algorithms powering SKYBOLT AI are calibrated according to peer-reviewed convective nowcasting literature:</p>
+        <ul class="space-y-2 list-disc pl-4 text-[#94948E]">
+          <li><strong>Mostajabi et al. (2019):</strong> <em>Nowcasting lightning occurrence from meteorological parameters using machine learning.</em> Nature Climate & Atmospheric Science.</li>
+          <li><strong>Shi et al. (2015, 2017):</strong> <em>Convolutional LSTM Network: A Machine Learning Approach for Precipitation Nowcasting.</em> NeurIPS.</li>
+          <li><strong>World Meteorological Organization (WMO):</strong> <em>Guidelines on Nowcasting Techniques and High-Impact Weather Early Warnings.</em></li>
+          <li><strong>Observational Feeds:</strong> Open-Meteo Global Forecasting, Doppler Weather Radar Reflectivity Grids, Geostationary Satellite Infrared Radiometers.</li>
+        </ul>
+      </div>
+      <div class="pt-3 border-t border-white/10 flex justify-end">
+        <button onclick="closeModal('sourcesModal')" class="btn-primary text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Prototype Modal -->
+  <div id="shareModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="editorial-surface bg-[#101316] border border-white/10 max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="globe" class="w-4 h-4 text-[#18D6D1]"></i>
+          <h3 class="text-sm font-bold text-[#F7F6F2]">Live Universal Prototype Link</h3>
+        </div>
+        <button onclick="closeModal('shareModal')" class="p-1 rounded text-[#94948E] hover:text-[#F7F6F2]"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <p class="text-xs text-[#94948E]">
+        Direct global link connecting through Cloudflare edge. Requires no login.
+      </p>
+      <div class="flex items-center bg-white/5 border border-white/10 rounded-lg p-2">
+        <input type="text" id="modalShareLinkInput" readonly value="https://semester-electric-bookmark-calculate.trycloudflare.com" class="w-full bg-transparent text-xs text-[#F7F6F2] font-mono focus:outline-none">
+        <button onclick="copyPrototypeLink()" class="btn-primary px-3 py-1.5 text-xs ml-2 shadow-none">Copy</button>
+      </div>
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeModal('shareModal')" class="btn-secondary text-xs">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Atmospheric Video & Normalization Modal -->
+  <div id="atmosphereModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="editorial-surface bg-[#101316] border border-white/10 max-w-lg w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="cloud" class="w-4 h-4 text-[#18D6D1]"></i>
+          <h3 class="text-sm font-bold text-[#F7F6F2] font-display">Atmospheric Background & Video System</h3>
+        </div>
+        <button onclick="closeModal('atmosphereModal')" class="p-1 rounded text-[#94948E] hover:text-[#F7F6F2]"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <!-- Active Atmospheric Asset Details -->
+      <div class="bg-white/5 p-3.5 rounded-xl border border-white/10 space-y-1.5 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="text-[#6C6C67]">Active Environment:</span>
+          <span id="activeAtmosphereTitle" class="font-bold text-[#F7F6F2]">Cinematic Thunderstorm (Uploaded)</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[#6C6C67]">Technical Format:</span>
+          <span id="activeAtmosphereDetails" class="font-mono text-[#18D6D1]">478 × 850 (Vertical) · H.264 / AAC · 10.0s Loop</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[#6C6C67]">Playback Behavior:</span>
+          <span class="text-[#6D786C] font-semibold">Muted Autoplay · Readability Protected</span>
+        </div>
+      </div>
+
+      <!-- Environment Presets -->
+      <div class="space-y-2">
+        <span class="text-xs font-bold text-[#F7F6F2] block">Atmospheric Presets</span>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <button onclick="switchAtmospherePreset('thunderstorm')" id="presetBtnThunderstorm" class="editorial-surface p-2.5 text-left border border-[#18D6D1]/50 bg-[#18D6D1]/10 rounded-lg transition-all flex flex-col">
+            <span class="font-bold text-[#F7F6F2] text-[11px]">⚡ Storm Atmosphere</span>
+            <span class="text-[9px] text-[#94948E]">Uploaded lightning & cloud transition</span>
+          </button>
+          <button onclick="switchAtmospherePreset('clouds')" id="presetBtnClouds" class="editorial-surface p-2.5 text-left border border-white/10 hover:border-white/20 bg-white/5 rounded-lg transition-all flex flex-col">
+            <span class="font-bold text-[#F7F6F2] text-[11px]">☁ Convective Clouds</span>
+            <span class="text-[9px] text-[#94948E]">Ambient cloud development</span>
+          </button>
+          <button onclick="switchAtmospherePreset('dribbble')" id="presetBtnDribbble" class="editorial-surface p-2.5 text-left border border-white/10 hover:border-white/20 bg-white/5 rounded-lg transition-all flex flex-col">
+            <span class="font-bold text-[#F7F6F2] text-[11px]">🌤 3D Weather Motion</span>
+            <span class="text-[9px] text-[#94948E]">Stylized 3D storm rays</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Visual Adjustment Sliders -->
+      <div class="space-y-3 pt-1 border-t border-white/10">
+        <span class="text-xs font-bold text-[#F7F6F2] block">Atmospheric Fine-Tuning</span>
+        <div class="space-y-2.5 text-xs">
+          <div>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-[#94948E]">Video Opacity</span>
+              <span id="bgOpacityLabel" class="font-mono text-[#F7F6F2]">70%</span>
+            </div>
+            <input type="range" id="bgOpacitySlider" min="20" max="100" value="70" oninput="adjustBgOpacity(this.value)">
+          </div>
+          <div>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-[#94948E]">Atmospheric Soft Focus (Blur)</span>
+              <span id="bgBlurLabel" class="font-mono text-[#F7F6F2]">0 px</span>
+            </div>
+            <input type="range" id="bgBlurSlider" min="0" max="16" value="0" oninput="adjustBgBlur(this.value)">
+          </div>
+          <div>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-[#94948E]">Center Zoom / Framing</span>
+              <span id="bgScaleLabel" class="font-mono text-[#F7F6F2]">100%</span>
+            </div>
+            <input type="range" id="bgScaleSlider" min="100" max="160" value="100" oninput="adjustBgScale(this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Automatic Video Normalization Upload Zone -->
+      <div class="space-y-3 pt-1 border-t border-white/10">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-[#F7F6F2]">Upload Custom Video</span>
+          <span class="text-[10px] text-[#6C6C67]">Auto-Normalization Engine</span>
+        </div>
+        
+        <label for="customVideoFileInput" class="border-2 border-dashed border-white/10 hover:border-[#18D6D1]/50 bg-[#0B0D0F] hover:bg-white/5 p-4 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all space-y-1.5 text-center">
+          <i data-lucide="upload-cloud" class="w-5 h-5 text-[#18D6D1]"></i>
+          <div>
+            <span class="text-xs font-bold text-[#F7F6F2] block">Upload custom video (MP4, WebM, MOV, M4V)</span>
+            <span class="text-[10px] text-[#94948E] block mt-0.5">Automatically resolves "Unsupported item" & extracts poster</span>
+          </div>
+          <input type="file" id="customVideoFileInput" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" onchange="handleCustomVideoUpload(event)" class="hidden">
+        </label>
+
+        <div id="uploadFeedback" class="text-xs font-mono text-[#18D6D1] min-h-[16px]"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="pt-3 border-t border-white/10 flex items-center justify-between">
+        <button onclick="resetDefaultAtmosphere()" class="btn-secondary text-xs">
+          Reset to Storm Atmosphere
+        </button>
+        <button onclick="closeModal('atmosphereModal')" class="btn-primary text-xs">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="model.js"></script>
+  <script src="map.js"></script>
+  <script src="hero_canvas.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

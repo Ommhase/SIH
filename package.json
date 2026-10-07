@@ -1,0 +1,13 @@
+{
+  "name": "skybolt-ai",
+  "version": "1.0.0",
+  "description": "SKYBOLT AI — Atmospheric Intelligence & Storm Nowcasting Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.3",
+    "localtunnel": "^2.0.2"
+  }
+}

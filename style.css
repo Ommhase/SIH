@@ -1,0 +1,486 @@
+/* ========================================================
+   SKYBOLT AI — 2026 COMMERCIAL WEATHER INTELLIGENCE DESIGN SYSTEM
+   Design Philosophy: Windy Functional Depth + Squarespace Visual Restraint
+   Palette:
+     - Deep Charcoal: #0B0D0F
+     - Near Black: #101316
+     - Warm White: #F7F6F2
+     - Pure White: #FFFFFF
+     - Soft Gray: #E9E8E3
+     - Text Gray: #6C6C67 / #94948E
+     - Muted Blue-Gray: #536B78
+     - Muted Green: #6D786C
+     - Accent Cyan: #18D6D1 (Used only as intelligent accent)
+     - Amber Risk: #C8943D
+     - Warning Red: #B85C52
+     - Severe Red: #8F3F3A
+   Typography: Inter + Plus Jakarta Sans + JetBrains Mono
+   ======================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Primary Editorial Palette */
+  --bg-canvas: #0B0D0F;
+  --bg-surface: #101316;
+  --bg-secondary: #161A1F;
+  --bg-elevated: #1C2229;
+  --bg-subtle: rgba(255, 255, 255, 0.04);
+
+  --text-primary: #F7F6F2;
+  --text-secondary: #94948E;
+  --text-muted: #6C6C67;
+  --text-inverted: #0B0D0F;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.16);
+  --border-focus: #18D6D1;
+
+  /* Controlled Semantic Accents */
+  --accent-cyan: #18D6D1;
+  --accent-cyan-subtle: rgba(24, 214, 209, 0.12);
+  --accent-cyan-border: rgba(24, 214, 209, 0.38);
+
+  --color-green: #6D786C;
+  --color-green-subtle: rgba(109, 120, 108, 0.16);
+
+  --color-amber: #C8943D;
+  --color-amber-subtle: rgba(200, 148, 61, 0.16);
+
+  --color-warning: #B85C52;
+  --color-warning-subtle: rgba(184, 92, 82, 0.16);
+
+  --color-severe: #8F3F3A;
+  --color-severe-subtle: rgba(143, 63, 58, 0.22);
+
+  --color-blue-gray: #536B78;
+
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-floating: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Light / Editorial Titanium Mode */
+body.theme-light {
+  --bg-canvas: #F7F6F2;
+  --bg-surface: #FFFFFF;
+  --bg-secondary: #E9E8E3;
+  --bg-elevated: #F2F1EC;
+  --bg-subtle: #E2E1DC;
+
+  --text-primary: #101316;
+  --text-secondary: #6C6C67;
+  --text-muted: #8E8D86;
+  --text-inverted: #FFFFFF;
+
+  --border-subtle: #DCDAD3;
+  --border-medium: #C8C6BE;
+  --border-focus: #101316;
+
+  --accent-cyan: #0E9F9B;
+  --accent-cyan-subtle: rgba(14, 159, 155, 0.10);
+  --accent-cyan-border: rgba(14, 159, 155, 0.30);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Restrained Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Typography Classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.text-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+.metric-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* Editorial Restrained Surfaces */
+.editorial-surface {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editorial-surface:hover {
+  border-color: var(--border-medium);
+}
+
+.editorial-secondary {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+/* Clean Form Inputs */
+.clean-input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clean-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 2px var(--accent-cyan-subtle);
+}
+
+/* Buttons — Restrained & Intentional */
+.btn-primary {
+  background-color: #F7F6F2;
+  color: #0B0D0F;
+  border: 1px solid #F7F6F2;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #FFFFFF;
+  border-color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Cyan Accent Button (For dedicated nowcast execution) */
+.btn-accent {
+  background-color: var(--accent-cyan);
+  color: #0B0D0F;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-accent:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-medium);
+  color: #FFFFFF;
+}
+
+/* Navigation Links */
+.nav-link {
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--text-primary);
+}
+
+/* ========================================================
+   ATMOSPHERIC BACKGROUND VIDEO & GRADUAL TONAL TRANSITION
+   Hero (Atmospheric 100%) → Product Intro (25%) → Dashboard/Map (Operational)
+   ======================================================== */
+.atmospheric-bg-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.7s ease;
+}
+
+body.atmosphere-off #atmosphericVideoContainer {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.atmospheric-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+  filter: saturate(96%) brightness(88%) contrast(98%) blur(var(--bg-blur, 0px));
+  opacity: var(--bg-opacity, 0.65);
+  transform: scale(var(--bg-scale, 1.02));
+  transform-origin: center center;
+  transition: opacity 0.5s ease, filter 0.3s ease, transform 0.4s ease;
+}
+
+/* Mobile: Native vertical composition without aggressive desktop cropping */
+@media (max-width: 768px) {
+  .atmospheric-bg-video {
+    object-position: center center;
+    transform: scale(var(--bg-scale, 1.0));
+  }
+}
+
+/* Subtle Layered Readability Gradient (Section 5) */
+.atmospheric-overlay-tint {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(11, 13, 15, 0.25);
+  pointer-events: none;
+}
+
+.atmospheric-overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 10, 14, 0.62) 0%,
+    rgba(5, 10, 14, 0.28) 35%,
+    rgba(5, 10, 14, 0.35) 65%,
+    rgba(5, 10, 14, 0.78) 100%
+  );
+  pointer-events: none;
+}
+
+.atmospheric-overlay-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 260px;
+  background: linear-gradient(to top, #0B0D0F 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Light Mode Overlays */
+body.theme-light .atmospheric-overlay-tint {
+  background-color: rgba(247, 246, 242, 0.25);
+}
+body.theme-light .atmospheric-overlay-gradient {
+  background: linear-gradient(
+    to bottom,
+    rgba(247, 246, 242, 0.65) 0%,
+    rgba(247, 246, 242, 0.30) 35%,
+    rgba(247, 246, 242, 0.40) 65%,
+    rgba(247, 246, 242, 0.85) 100%
+  );
+}
+body.theme-light .atmospheric-overlay-bottom {
+  background: linear-gradient(to top, #F7F6F2 0%, transparent 100%);
+}
+
+.content-layer {
+  position: relative;
+  z-index: 10;
+}
+
+/* ========================================================
+   LEAFLET WEATHER MAP — OPERATIONAL WEATHER INTELLIGENCE
+   ======================================================== */
+.leaflet-container {
+  background: #0B0D0F !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Cartographic Filters */
+.standard-map-tiles {
+  filter: contrast(102%) brightness(98%) saturate(96%);
+}
+
+.dark-map-tiles {
+  filter: brightness(88%) contrast(105%) saturate(110%);
+}
+
+.terrain-map-tiles {
+  filter: contrast(104%) saturate(102%);
+}
+
+/* Professional Minimalist Leaflet Bar */
+.leaflet-bar {
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-card) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 15px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--bg-secondary) !important;
+  color: #FFFFFF !important;
+}
+
+/* Leaflet Popups */
+.leaflet-popup-content-wrapper {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-floating) !important;
+  padding: 4px 6px !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-surface) !important;
+  box-shadow: none !important;
+}
+
+/* Location Pin */
+.location-pin-pulse {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-pin-pulse::before {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(24, 214, 209, 0.25);
+  animation: pinPulse 2.4s ease-out infinite;
+}
+
+@keyframes pinPulse {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Lightning strike marker */
+.lightning-strike-pulse {
+  animation: strikePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes strikePulse {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.2); }
+}
+
+/* Subtle Animated Wind Streamlines */
+.wind-particle {
+  stroke-dasharray: 6, 6;
+  animation: windFlow 2.8s linear infinite;
+}
+
+@keyframes windFlow {
+  to { stroke-dashoffset: -24; }
+}
+
+/* Refined Range Sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #F7F6F2;
+  cursor: pointer;
+  border: 2px solid #0B0D0F;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .atmospheric-bg-video {
+    display: none !important;
+  }
+}
